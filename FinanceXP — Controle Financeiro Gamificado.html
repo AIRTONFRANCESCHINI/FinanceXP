@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinanceXP — Controle Financeiro Gamificado</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--green:#1D9E75;--green-dark:#0F6E56;--green-light:#5DCAA5;--red:#E24B4A;--blue:#378ADD;--amber:#F0A93B;--purple:#7F77DD;--pink:#D4537E;--bg:#f4f7f6;--surface:#fff;--border:#e5e7eb;--text:#111827;--muted:#6b7280;--light:#f3f4f6;--r:16px;--rs:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+h1,h2,.app-title,.score-big,.rep-month,.mvalue,.ach-lvl{font-family:'Poppins',sans-serif}
+
+.app-header{background:linear-gradient(135deg,var(--green) 0%,var(--green-dark) 100%);color:#fff;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 4px 16px rgba(15,110,86,.25)}
+.app-title{font-size:22px;font-weight:800;display:flex;align-items:center;gap:8px}
+.app-title .ic{font-size:28px}
+.header-right{display:flex;align-items:center;gap:10px}
+.pill{background:rgba(255,255,255,.22);border-radius:24px;padding:8px 14px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px;backdrop-filter:blur(4px)}
+.pill .ic{font-size:18px}
+
+.tab-bar{background:var(--surface);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;position:sticky;top:68px;z-index:9;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab{flex:none;padding:14px 18px;border:none;background:transparent;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;gap:6px}
+.tab .ic{font-size:20px}
+.tab.active{color:var(--green);border-bottom-color:var(--green);background:#EAF3DE33}
+.tab:hover{background:var(--light)}
+
+.main{max-width:680px;margin:0 auto;padding:20px 16px 110px}
+.screen{display:none}.screen.active{display:block;animation:fadein .3s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-bottom:16px;box-shadow:0 2px 10px rgba(0,0,0,.03)}
+.stitle{font-size:13px;font-weight:800;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.stitle .ic{font-size:22px}
+
+.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.metric{background:var(--light);border-radius:var(--rs);padding:16px 10px;text-align:center;border:2px solid transparent;transition:transform .15s}
+.metric:hover{transform:translateY(-2px)}
+.metric .micon{font-size:26px;margin-bottom:6px;display:block}
+.mlabel{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;font-weight:700}
+.mvalue{font-size:22px;font-weight:800}
+.green{color:var(--green)!important}.red{color:var(--red)!important}.blue{color:var(--blue)!important}
+
+.pb-wrap{background:var(--light);border-radius:8px;height:12px;overflow:hidden;margin-bottom:4px}
+.pb{height:12px;border-radius:8px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+.xp-outer{background:var(--light);border-radius:10px;height:16px;overflow:hidden;margin:10px 0;position:relative}
+.xp-inner{height:16px;background:linear-gradient(90deg,var(--green) 0%,var(--green-light) 50%,var(--blue) 100%);border-radius:10px;transition:width .6s cubic-bezier(.4,0,.2,1);position:relative}
+.xp-inner::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);animation:shine 2s infinite}
+@keyframes shine{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:5px 12px;border-radius:24px;font-weight:800}
+.bok{background:#EAF3DE;color:#27500A}.bwarn{background:#FAEEDA;color:#7A4D03}.bdanger{background:#FCEBEB;color:#791F1F}.binfo{background:#E6F1FB;color:#0C447C}
+
+.cat-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:14px;font-weight:600}
+.cat-emoji-badge{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+
+.elist{list-style:none}
+.eitem{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--light);font-size:14px}
+.eitem:last-child{border:none}
+.emoji{width:40px;height:40px;background:var(--light);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.del-btn{background:var(--light);border:none;cursor:pointer;color:#bbb;font-size:16px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.del-btn:hover{color:#fff;background:var(--red)}
+
+.flabel{font-size:12px;font-weight:800;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+.flabel .ic{font-size:16px}
+input,select{width:100%;padding:14px 16px;border:2px solid var(--border);border-radius:var(--rs);background:var(--surface);color:var(--text);font-size:16px;font-family:'Inter',sans-serif;outline:none;transition:all .15s;font-weight:600}
+input:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 4px rgba(29,158,117,.12)}
+input::placeholder{font-weight:400;color:#bbb}
+
+.save-btn{width:100%;padding:18px;background:linear-gradient(135deg,var(--green),var(--green-dark));border:none;border-radius:var(--rs);color:#fff;font-size:17px;font-weight:800;cursor:pointer;margin-top:14px;font-family:'Poppins',sans-serif;transition:all .15s;box-shadow:0 4px 14px rgba(29,158,117,.35);display:flex;align-items:center;justify-content:center;gap:8px}
+.save-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(29,158,117,.45)}
+.save-btn:active{transform:translateY(0) scale(.98)}
+.save-btn .ic{font-size:22px}
+
+.export-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border:2px solid var(--border);border-radius:var(--rs);background:var(--surface);font-size:14px;font-weight:700;cursor:pointer;color:var(--text);font-family:'Inter',sans-serif;margin-right:8px;margin-bottom:8px;transition:all .15s}
+.export-btn:hover{background:var(--light);border-color:var(--green);transform:translateY(-2px)}
+.export-btn .ic{font-size:20px}
+
+.add-btn{width:100%;padding:16px;background:var(--light);border:2.5px dashed #cbd5d1;border-radius:var(--rs);font-size:15px;font-weight:700;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Inter',sans-serif;margin-bottom:12px;transition:all .15s}
+.add-btn:hover{background:#e5e7eb;border-color:var(--green);color:var(--green)}
+.add-btn .ic{font-size:22px}
+
+.type-toggle{display:flex;gap:10px;margin-bottom:18px}
+.type-btn{flex:1;padding:16px;border:2.5px solid var(--border);border-radius:var(--rs);background:var(--surface);font-size:16px;font-weight:800;cursor:pointer;color:var(--muted);font-family:'Poppins',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.type-btn .ic{font-size:24px}
+.type-btn:hover{transform:translateY(-2px)}
+.ae{background:#FCEBEB;color:#A32D2D;border-color:#E24B4A}
+.ai{background:#EAF3DE;color:#27500A;border-color:#1D9E75}
+
+.chip{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:24px;font-size:14px;font-weight:700;cursor:pointer;border:2px solid var(--border);background:var(--surface);color:var(--muted);margin:4px;font-family:'Inter',sans-serif;transition:all .15s}
+.chip .ic{font-size:18px}
+.chip:hover{transform:translateY(-2px);border-color:var(--green-light)}
+.chip.sel{background:linear-gradient(135deg,var(--green),var(--green-dark));color:#fff;border-color:transparent;box-shadow:0 3px 10px rgba(29,158,117,.35)}
+
+.rep-header{background:linear-gradient(135deg,var(--green) 0%,var(--green-dark) 100%);border-radius:var(--r);padding:24px;color:#fff;margin-bottom:16px;text-align:center;box-shadow:0 6px 20px rgba(15,110,86,.25)}
+.rep-month{font-size:26px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:10px}
+.rep-month .ic{font-size:30px}
+.rep-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.rep-metric{background:rgba(255,255,255,.2);border-radius:var(--rs);padding:14px;text-align:center;backdrop-filter:blur(4px)}
+.rep-lbl{font-size:11px;opacity:.85;margin-bottom:4px;font-weight:700;text-transform:uppercase}
+.rep-val{font-size:20px;font-weight:800}
+
+.month-nav{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.month-nav button{padding:12px 18px;border:2px solid var(--border);border-radius:var(--rs);background:var(--surface);cursor:pointer;font-size:15px;font-weight:700;font-family:'Inter',sans-serif;transition:all .15s}
+.month-nav button:hover{background:var(--green);color:#fff;border-color:var(--green)}
+
+.ibox{border-radius:var(--rs);padding:14px 16px;margin-bottom:10px;font-size:14px;font-weight:700;line-height:1.5;display:flex;align-items:flex-start;gap:10px}
+.ibox .ic{font-size:22px;flex-shrink:0}
+.iok{background:#EAF3DE;color:#1F4308}.iwarn{background:#FAEEDA;color:#6B4203}.idanger{background:#FCEBEB;color:#6B1414}.iinfo{background:#E6F1FB;color:#093A66}
+
+.furo-item{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--light)}
+.furo-item:last-child{border:none}
+.furo-icon-wrap{width:48px;height:48px;border-radius:14px;background:#FCEBEB;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+
+.ach-item{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--light);transition:all .2s}
+.ach-item:last-child{border:none}
+.ach-item.unlocked{animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
+.ach-icon{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0;transition:all .2s}
+.ach-icon.locked{filter:grayscale(1);opacity:.35;background:var(--light)}
+.ach-icon.unlocked{background:linear-gradient(135deg,#FAEEDA,#F0A93B33);box-shadow:0 4px 12px rgba(240,169,59,.3)}
+
+.streak-circle{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#FAEEDA,#fff);display:flex;flex-direction:column;align-items:center;justify-content:center;border:3px solid var(--amber);flex-shrink:0;box-shadow:0 4px 14px rgba(240,169,59,.3)}
+.streak-circle .num{font-size:26px;font-weight:800;color:#BA7517;line-height:1}
+.streak-circle .lbl{font-size:10px;color:var(--muted);font-weight:700}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--r);padding:24px;width:92%;max-width:420px;box-shadow:0 24px 70px rgba(0,0,0,.2)}
+.modal-title{font-size:19px;font-weight:800;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;font-family:'Poppins',sans-serif}
+.close-btn{background:var(--light);border:none;cursor:pointer;font-size:18px;color:var(--muted);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.close-btn:hover{background:var(--red);color:#fff}
+
+#toast{display:none;position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--green),var(--green-dark));color:#fff;padding:14px 28px;border-radius:30px;font-size:15px;font-weight:800;z-index:200;white-space:nowrap;box-shadow:0 8px 24px rgba(29,158,117,.45);animation:toastin .3s ease}
+@keyframes toastin{from{opacity:0;transform:translate(-50%,20px)}to{opacity:1;transform:translate(-50%,0)}}
+#toast .ic{font-size:20px;margin-right:6px}
+
+.empty{text-align:center;padding:2.5rem 1rem;color:#a3aca8;font-size:14px;font-weight:600}
+.empty .big{font-size:48px;display:block;margin-bottom:12px}
+
+.fab{position:fixed;bottom:28px;right:24px;width:64px;height:64px;background:linear-gradient(135deg,var(--green),var(--green-dark));border:none;border-radius:50%;color:#fff;font-size:32px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(29,158,117,.5);display:flex;align-items:center;justify-content:center;z-index:50;transition:all .15s;font-family:'Inter',sans-serif}
+.fab:hover{transform:scale(1.08) rotate(8deg)}
+.fab:active{transform:scale(.95)}
+
+.score-big{font-size:48px;font-weight:800;line-height:1}
+.score-ring-wrap{position:relative;width:90px;height:90px;flex-shrink:0}
+.score-ring-wrap svg{transform:rotate(-90deg)}
+
+@media(max-width:480px){.mvalue{font-size:18px}.app-title{font-size:18px}.rep-val{font-size:16px}.score-big{font-size:38px}}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="app-title"><span class="ic">💰</span> FinanceXP</div>
+  <div class="header-right">
+    <div class="pill"><span class="ic">🔥</span><span id="streak-num">0</span> dias</div>
+    <div class="pill"><span class="ic">⭐</span>Nível <span id="level-num">1</span></div>
+  </div>
+</header>
+<nav class="tab-bar">
+  <button class="tab active" onclick="sw('dashboard')"><span class="ic">📊</span> Visão Geral</button>
+  <button class="tab" onclick="sw('lancamentos')"><span class="ic">➕</span> Lançar</button>
+  <button class="tab" onclick="sw('relatorio')"><span class="ic">📄</span> Relatório</button>
+  <button class="tab" onclick="sw('furos')"><span class="ic">🔍</span> Furos</button>
+  <button class="tab" onclick="sw('conquistas')"><span class="ic">🏆</span> Conquistas</button>
+</nav>
+<main class="main">
+
+<!-- DASHBOARD -->
+<div id="screen-dashboard" class="screen active">
+  <div class="metric-row">
+    <div class="metric"><span class="micon">💵</span><div class="mlabel">Receitas</div><div class="mvalue green" id="m-rec">R$0</div></div>
+    <div class="metric"><span class="micon">💸</span><div class="mlabel">Gastos</div><div class="mvalue red" id="m-gas">R$0</div></div>
+    <div class="metric"><span class="micon">🏦</span><div class="mlabel">Saldo</div><div class="mvalue" id="m-sal">R$0</div></div>
+  </div>
+  <div class="card">
+    <div class="stitle"><span class="ic">⭐</span> Score Financeiro</div>
+    <div style="display:flex;align-items:center;gap:20px">
+      <div style="text-align:center"><div class="score-big" id="score-val">—</div><div style="font-size:12px;color:var(--muted);margin-top:4px;font-weight:700">de 100 pts</div></div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:800;margin-bottom:8px" id="score-lbl">Lance transações para calcular</div>
+        <div class="xp-outer"><div class="xp-inner" id="xp-bar" style="width:0%"></div></div>
+        <div style="font-size:13px;color:var(--muted);font-weight:700">⚡ XP: <span id="xp-val">0</span>/<span id="xp-nxt">100</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card"><div class="stitle"><span class="ic">📂</span> Gastos por Categoria</div><div id="cat-area"><div class="empty"><span class="big">💸</span>Nenhum lançamento ainda<br><small>Vá em "Lançar" para começar!</small></div></div></div>
+  <div class="card"><div class="stitle"><span class="ic">🕐</span> Últimos Lançamentos</div><ul class="elist" id="recent-list"><li class="empty"><span class="big">📭</span>Nenhum lançamento</li></ul></div>
+</div>
+
+<!-- LANÇAMENTOS -->
+<div id="screen-lancamentos" class="screen">
+  <div class="card">
+    <div class="stitle"><span class="ic">✏️</span> Novo Lançamento</div>
+    <div class="type-toggle">
+      <button class="type-btn ae" id="btn-exp" onclick="setType('expense')"><span class="ic">💸</span> Gasto</button>
+      <button class="type-btn" id="btn-inc" onclick="setType('income')"><span class="ic">💰</span> Receita</button>
+    </div>
+    <div style="margin-bottom:14px"><div class="flabel"><span class="ic">📝</span>Descrição</div><input type="text" id="inp-desc" placeholder="Ex: Mercado, Uber, Salário..."></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div><div class="flabel"><span class="ic">💲</span>Valor (R$)</div><input type="number" id="inp-val" placeholder="0,00" step="0.01" min="0"></div>
+      <div><div class="flabel"><span class="ic">📅</span>Data</div><input type="date" id="inp-data"></div>
+    </div>
+    <div class="flabel"><span class="ic">🏷️</span>Categoria</div>
+    <div id="chips-exp" style="margin-bottom:6px">
+      <button class="chip sel" onclick="selChip(this,'Alimentação')"><span class="ic">🍔</span> Alimentação</button>
+      <button class="chip" onclick="selChip(this,'Transporte')"><span class="ic">🚗</span> Transporte</button>
+      <button class="chip" onclick="selChip(this,'Moradia')"><span class="ic">🏠</span> Moradia</button>
+      <button class="chip" onclick="selChip(this,'Saúde')"><span class="ic">💊</span> Saúde</button>
+      <button class="chip" onclick="selChip(this,'Lazer')"><span class="ic">🎮</span> Lazer</button>
+      <button class="chip" onclick="selChip(this,'Educação')"><span class="ic">📚</span> Educação</button>
+      <button class="chip" onclick="selChip(this,'Assinaturas')"><span class="ic">📱</span> Assinaturas</button>
+      <button class="chip" onclick="selChip(this,'Outros')"><span class="ic">💼</span> Outros</button>
+    </div>
+    <div id="chips-inc" style="display:none;margin-bottom:6px">
+      <button class="chip sel" onclick="selChip(this,'Salário')"><span class="ic">💼</span> Salário</button>
+      <button class="chip" onclick="selChip(this,'Freelance')"><span class="ic">💻</span> Freelance</button>
+      <button class="chip" onclick="selChip(this,'Investimentos')"><span class="ic">📈</span> Investimentos</button>
+      <button class="chip" onclick="selChip(this,'Outros')"><span class="ic">➕</span> Outros</button>
+    </div>
+    <button class="save-btn" onclick="saveEntry()"><span class="ic">✅</span> Salvar e Ganhar XP!</button>
+  </div>
+  <div class="card"><div class="stitle"><span class="ic">📋</span> Todos os Lançamentos</div><ul class="elist" id="all-list"><li class="empty"><span class="big">📭</span>Nenhum lançamento ainda</li></ul></div>
+</div>
+
+<!-- RELATÓRIO -->
+<div id="screen-relatorio" class="screen">
+  <div class="month-nav">
+    <button onclick="navMonth(-1)">⬅ Anterior</button>
+    <div style="flex:1;text-align:center;font-size:16px;font-weight:800" id="rep-month-title"></div>
+    <button onclick="navMonth(1)">Próximo ➡</button>
+  </div>
+  <div class="rep-header">
+    <div class="rep-month"><span class="ic">📄</span><span id="rep-hdr-title"></span></div>
+    <div style="font-size:13px;opacity:.85;font-weight:600">Relatório completo do mês</div>
+    <div class="rep-metrics">
+      <div class="rep-metric"><div class="rep-lbl">💵 Receitas</div><div class="rep-val" id="rep-rec">R$0</div></div>
+      <div class="rep-metric"><div class="rep-lbl">💸 Gastos</div><div class="rep-val" id="rep-gas">R$0</div></div>
+      <div class="rep-metric"><div class="rep-lbl">🏦 Saldo</div><div class="rep-val" id="rep-sal">R$0</div></div>
+    </div>
+  </div>
+  <div class="card"><div class="stitle"><span class="ic">💡</span> Análise Automática</div><div id="rep-insights"><div class="empty"><span class="big">📊</span>Sem dados para este mês</div></div></div>
+  <div class="card">
+    <div class="stitle"><span class="ic">🍩</span> Gastos por Categoria</div>
+    <div style="position:relative;height:260px"><canvas id="chart-rep" role="img" aria-label="Gráfico de gastos por categoria">Gráfico de categorias</canvas></div>
+    <div id="rep-cat-legend" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;font-size:12px;color:var(--muted);font-weight:700"></div>
+  </div>
+  <div class="card"><div class="stitle"><span class="ic">📈</span> Evolução Diária de Gastos</div><div style="position:relative;height:200px"><canvas id="chart-daily" role="img" aria-label="Evolução diária">Gráfico diário</canvas></div></div>
+  <div class="card"><div class="stitle"><span class="ic">📋</span> Transações do Mês</div><ul class="elist" id="rep-list"><li class="empty"><span class="big">📭</span>Sem transações este mês</li></ul></div>
+  <div class="card"><div class="stitle"><span class="ic">📤</span> Exportar</div>
+    <button class="export-btn" onclick="exportCSV()"><span class="ic">📥</span> Exportar CSV</button>
+    <button class="export-btn" onclick="exportTxt()"><span class="ic">📄</span> Exportar Texto</button>
+    <button class="export-btn" onclick="printReport()"><span class="ic">🖨️</span> Imprimir / PDF</button>
+  </div>
+</div>
+
+<!-- FUROS -->
+<div id="screen-furos" class="screen">
+  <div class="card"><div class="stitle"><span class="ic">⚠️</span> Furos no Orçamento</div><p style="font-size:14px;color:var(--muted);margin-bottom:14px;font-weight:600">Análise inteligente dos seus gastos do mês atual</p><div id="furos-list"><div class="empty"><span class="big">🔍</span>Lance pelo menos 5 transações para analisar</div></div></div>
+  <div class="card"><div class="stitle"><span class="ic">🎯</span> Metas por Categoria</div><div id="metas-list"><p style="font-size:14px;color:var(--muted);margin-bottom:12px;font-weight:600">Defina metas mensais para identificar furos com precisão</p></div><button class="add-btn" onclick="document.getElementById('meta-modal').classList.add('open')"><span class="ic">🎯</span> Adicionar Meta</button></div>
+</div>
+
+<!-- CONQUISTAS -->
+<div id="screen-conquistas" class="screen">
+  <div class="card" style="text-align:center;padding:28px">
+    <div style="font-size:52px;font-weight:800;color:var(--green);font-family:'Poppins',sans-serif" id="ach-lvl">🏅 Nível 1</div>
+    <div style="font-size:15px;color:var(--muted);margin-bottom:12px;font-weight:700" id="ach-lvl-name">Explorador Financeiro</div>
+    <div class="xp-outer"><div class="xp-inner" id="xp-bar2" style="width:0%"></div></div>
+    <div style="font-size:13px;color:var(--muted);margin-top:8px;font-weight:700"><span id="xp-val2">0</span>/<span id="xp-nxt2">100</span> XP para o próximo nível</div>
+  </div>
+  <div class="card"><div class="stitle"><span class="ic">🏅</span> Conquistas</div><div id="ach-list"></div></div>
+  <div class="card"><div class="stitle"><span class="ic">🔥</span> Sequência de Lançamentos</div>
+    <div style="display:flex;align-items:center;gap:18px">
+      <div class="streak-circle"><span class="num" id="streak-big">0</span><span class="lbl">dias</span></div>
+      <div><div style="font-size:16px;font-weight:800">Dias seguidos lançando</div><div style="font-size:14px;color:var(--muted);margin-top:4px;font-weight:600">Lance hoje para manter sua sequência! 🔥</div></div>
+    </div>
+  </div>
+</div>
+
+</main>
+<button class="fab" onclick="sw('lancamentos')" aria-label="Novo lançamento">＋</button>
+
+<!-- MODAL META -->
+<div id="meta-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">🎯 Nova Meta <button class="close-btn" onclick="document.getElementById('meta-modal').classList.remove('open')">✕</button></div>
+    <div class="flabel">🏷️ Categoria</div>
+    <select id="meta-cat" style="margin-bottom:14px"><option>Alimentação</option><option>Transporte</option><option>Moradia</option><option>Saúde</option><option>Lazer</option><option>Educação</option><option>Assinaturas</option><option>Outros</option></select>
+    <div class="flabel">💲 Limite mensal (R$)</div>
+    <input type="number" id="meta-val" placeholder="500" step="10" min="0" style="margin-bottom:14px">
+    <button class="save-btn" onclick="saveMeta()"><span class="ic">💾</span> Salvar Meta (+15 XP)</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+var entries=JSON.parse(localStorage.getItem('fxp_v4_entries')||'[]');
+var metas=JSON.parse(localStorage.getItem('fxp_v4_metas')||'{}');
+var xp=parseInt(localStorage.getItem('fxp_v4_xp')||'0');
+var streak=parseInt(localStorage.getItem('fxp_v4_streak')||'0');
+var lastDate=localStorage.getItem('fxp_v4_lastdate')||'';
+var currentType='expense',selectedCat='Alimentação';
+var repYear=new Date().getFullYear(),repMonth=new Date().getMonth();
+var chartRep=null,chartDaily=null;
+var COLORS={'Alimentação':'#1D9E75','Transporte':'#378ADD','Moradia':'#7F77DD','Saúde':'#D4537E','Lazer':'#F0A93B','Educação':'#639922','Assinaturas':'#D85A30','Outros':'#888780','Salário':'#1D9E75','Freelance':'#378ADD','Investimentos':'#639922'};
+var EMOJI={'Alimentação':'🍔','Transporte':'🚗','Moradia':'🏠','Saúde':'💊','Lazer':'🎮','Educação':'📚','Assinaturas':'📱','Outros':'💼','Salário':'💼','Freelance':'💻','Investimentos':'📈'};
+var MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+var LEVEL_XP=[0,100,250,500,1000,2000];
+var LEVEL_NAMES=['Explorador','Organizado','Consciente','Estrategista','Mestre Financeiro','Lenda'];
+var ACHS=[
+  {id:'first',icon:'🌱',title:'Primeiro passo',desc:'Lance sua primeira transação',check:function(){return entries.length>=1}},
+  {id:'five',icon:'⚡',title:'Em ritmo',desc:'5 lançamentos feitos',check:function(){return entries.length>=5}},
+  {id:'ten',icon:'🎯',title:'Focado',desc:'10 lançamentos feitos',check:function(){return entries.length>=10}},
+  {id:'thirty',icon:'📅',title:'30 lançamentos',desc:'30 transações registradas',check:function(){return entries.length>=30}},
+  {id:'streak3',icon:'🔥',title:'3 dias seguidos',desc:'Sequência de 3 dias',check:function(){return streak>=3}},
+  {id:'streak7',icon:'🏅',title:'Semana perfeita',desc:'7 dias seguidos lançando',check:function(){return streak>=7}},
+  {id:'saver',icon:'🐷',title:'Poupador',desc:'Saldo positivo no mês',check:function(){var c=curM();var r=c.filter(function(e){return e.type==='income'}).reduce(function(a,e){return a+e.valor},0);var g=c.filter(function(e){return e.type==='expense'}).reduce(function(a,e){return a+e.valor},0);return r>g&&c.length>0}},
+  {id:'meta',icon:'🏆',title:'Planejador',desc:'Defina uma meta de categoria',check:function(){return Object.keys(metas).length>0}},
+  {id:'xp100',icon:'💫',title:'100 XP!',desc:'Acumule 100 pontos',check:function(){return xp>=100}},
+  {id:'xp500',icon:'🌟',title:'500 XP!',desc:'Acumule 500 pontos',check:function(){return xp>=500}}
+];
+function fmt(v){return'R$'+Math.round(v).toLocaleString('pt-BR')}
+function save(){localStorage.setItem('fxp_v4_entries',JSON.stringify(entries));localStorage.setItem('fxp_v4_metas',JSON.stringify(metas));localStorage.setItem('fxp_v4_xp',xp);localStorage.setItem('fxp_v4_streak',streak);localStorage.setItem('fxp_v4_lastdate',lastDate)}
+function toast(msg){var t=document.getElementById('toast');t.innerHTML=msg;t.style.display='block';setTimeout(function(){t.style.display='none'},2600)}
+function getLevel(){for(var i=LEVEL_XP.length-1;i>=0;i--){if(xp>=LEVEL_XP[i])return i}return 0}
+function getLXP(){var l=getLevel();return{cur:xp-LEVEL_XP[l],next:(LEVEL_XP[l+1]||LEVEL_XP[LEVEL_XP.length-1]+500)-LEVEL_XP[l]}}
+function updateStreak(){var today=new Date().toISOString().slice(0,10);if(lastDate===today)return;var yest=new Date(Date.now()-86400000).toISOString().slice(0,10);streak=(lastDate===yest)?streak+1:1;lastDate=today;save()}
+function sw(t){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('active')});document.getElementById('screen-'+t).classList.add('active');var tabs=['dashboard','lancamentos','relatorio','furos','conquistas'];document.querySelectorAll('.tab')[tabs.indexOf(t)].classList.add('active');if(t==='relatorio'){var r=parseInt(localStorage.getItem('fxp_v4_rep')||'0');localStorage.setItem('fxp_v4_rep',r+1)}render()}
+function setType(t){currentType=t;document.getElementById('btn-exp').className='type-btn'+(t==='expense'?' ae':'');document.getElementById('btn-inc').className='type-btn'+(t==='income'?' ai':'');document.getElementById('chips-exp').style.display=t==='expense'?'':'none';document.getElementById('chips-inc').style.display=t==='income'?'':'none';var chips=document.querySelectorAll('#chips-'+(t==='expense'?'exp':'inc')+' .chip');chips.forEach(function(c,i){c.classList.toggle('sel',i===0)});selectedCat=t==='expense'?'Alimentação':'Salário'}
+function selChip(el,cat){var w=el.closest('div');w.querySelectorAll('.chip').forEach(function(c){c.classList.remove('sel')});el.classList.add('sel');selectedCat=cat}
+function saveEntry(){var desc=document.getElementById('inp-desc').value.trim();var valor=parseFloat(document.getElementById('inp-val').value);var data=document.getElementById('inp-data').value||new Date().toISOString().slice(0,10);if(!desc||isNaN(valor)||valor<=0){toast('⚠️ Preencha descrição e valor!');return}entries.push({id:Date.now(),type:currentType,desc:desc,valor:valor,cat:selectedCat,date:data});var gained=currentType==='expense'?5:10;xp+=gained;updateStreak();save();document.getElementById('inp-desc').value='';document.getElementById('inp-val').value='';toast('<span class="ic">✅</span> +'+gained+' XP! Salvo com sucesso!');render()}
+function deleteEntry(id){entries=entries.filter(function(e){return e.id!==id});save();render()}
+function saveMeta(){var cat=document.getElementById('meta-cat').value;var val=parseFloat(document.getElementById('meta-val').value);if(isNaN(val)||val<=0){toast('⚠️ Valor inválido');return}metas[cat]=val;xp+=15;save();render();document.getElementById('meta-modal').classList.remove('open');document.getElementById('meta-val').value='';toast('<span class="ic">🎯</span> Meta salva! +15 XP')}
+function curM(){var m=new Date().toISOString().slice(0,7);return entries.filter(function(e){return e.date.startsWith(m)})}
+function monthEntries(y,mo){var m=y+'-'+(mo+1).toString().padStart(2,'0');return entries.filter(function(e){return e.date.startsWith(m)})}
+function navMonth(d){repMonth+=d;if(repMonth<0){repMonth=11;repYear--}if(repMonth>11){repMonth=0;repYear++}render()}
+function render(){
+  var cur=curM();
+  var rec=cur.filter(function(e){return e.type==='income'}).reduce(function(a,e){return a+e.valor},0);
+  var gas=cur.filter(function(e){return e.type==='expense'}).reduce(function(a,e){return a+e.valor},0);
+  var sal=rec-gas;
+  document.getElementById('m-rec').textContent=fmt(rec);
+  document.getElementById('m-gas').textContent=fmt(gas);
+  var se=document.getElementById('m-sal');se.textContent=fmt(sal);se.className='mvalue '+(sal>=0?'green':'red');
+  var l=getLevel();var lxp=getLXP();var pct=Math.min(100,Math.round(lxp.cur/lxp.next*100));
+  ['xp-bar','xp-bar2'].forEach(function(id){document.getElementById(id).style.width=pct+'%'});
+  ['xp-val','xp-val2'].forEach(function(id){document.getElementById(id).textContent=lxp.cur});
+  ['xp-nxt','xp-nxt2'].forEach(function(id){document.getElementById(id).textContent=lxp.next});
+  document.getElementById('level-num').textContent=l+1;
+  document.getElementById('ach-lvl').textContent='🏅 Nível '+(l+1);
+  document.getElementById('ach-lvl-name').textContent=LEVEL_NAMES[l]+' Financeiro';
+  document.getElementById('streak-num').textContent=streak;
+  document.getElementById('streak-big').textContent=streak;
+  var score='—',scoreLbl='Lance transações para calcular';
+  if(cur.length>=3){var s=100;if(rec>0){var ratio=gas/rec;if(ratio>0.9)s-=40;else if(ratio>0.7)s-=20;else if(ratio>0.5)s-=10}var ct={};cur.filter(function(e){return e.type==='expense'}).forEach(function(e){ct[e.cat]=(ct[e.cat]||0)+e.valor});Object.keys(metas).forEach(function(c){if(ct[c]&&ct[c]>metas[c])s-=10});s=Math.max(0,Math.min(100,s));score=s;scoreLbl=s>=80?'🟢 Ótimo controle!':s>=60?'🟡 Pode melhorar':s>=40?'🟠 Atenção aos gastos':'🔴 Orçamento crítico'}
+  var sv=document.getElementById('score-val');sv.textContent=score==='—'?'—':score;sv.style.color=score==='—'?'var(--muted)':score>=80?'var(--green)':score>=60?'var(--amber)':'var(--red)';
+  document.getElementById('score-lbl').textContent=scoreLbl;
+  var expE=cur.filter(function(e){return e.type==='expense'});
+  var catEl=document.getElementById('cat-area');
+  if(expE.length===0){catEl.innerHTML='<div class="empty"><span class="big">💸</span>Sem gastos este mês</div>'}
+  else{var ct2={};expE.forEach(function(e){ct2[e.cat]=(ct2[e.cat]||0)+e.valor});var tot=Object.values(ct2).reduce(function(a,v){return a+v},0);catEl.innerHTML=Object.entries(ct2).sort(function(a,b){return b[1]-a[1]}).map(function(kv){var c=kv[0],v=kv[1];var p=Math.round(v/tot*100);var col=COLORS[c]||'#888';var hasM=metas[c]?'<span class="badge '+(v>metas[c]?'bdanger':'bok')+'">'+(v>metas[c]?'⚠️ Acima':'✅ OK')+'</span>':'';return'<div class="cat-row"><div style="display:flex;align-items:center;gap:10px"><div class="cat-emoji-badge" style="background:'+col+'22">'+(EMOJI[c]||'💼')+'</div><span>'+c+'</span>'+hasM+'</div><div style="text-align:right"><div style="font-weight:800">'+fmt(v)+'</div><div style="font-size:11px;color:var(--muted);font-weight:700">'+p+'%</div></div></div><div class="pb-wrap"><div class="pb" style="width:'+p+'%;background:'+col+'"></div></div>'}).join('')}
+  var recent=[].concat(entries).sort(function(a,b){return b.id-a.id}).slice(0,5);
+  document.getElementById('recent-list').innerHTML=recent.length?recent.map(function(e){return'<li class="eitem"><div style="display:flex;align-items:center;gap:12px"><div class="emoji">'+(EMOJI[e.cat]||'💼')+'</div><div><div style="font-weight:700">'+e.desc+'</div><div style="font-size:12px;color:var(--muted);font-weight:600">'+e.cat+' · '+e.date+'</div></div></div><span style="font-weight:800;color:'+(e.type==='expense'?'var(--red)':'var(--green)')+'">'+(e.type==='expense'?'-':'+')+' '+fmt(e.valor)+'</span></li>'}).join(''):'<li class="empty"><span class="big">📭</span>Nenhum lançamento</li>';
+  var all=[].concat(entries).sort(function(a,b){return b.id-a.id});
+  document.getElementById('all-list').innerHTML=all.length?all.map(function(e){return'<li class="eitem"><div style="display:flex;align-items:center;gap:12px"><div class="emoji">'+(EMOJI[e.cat]||'💼')+'</div><div><div style="font-weight:700">'+e.desc+'</div><div style="font-size:12px;color:var(--muted);font-weight:600">'+e.cat+' · '+e.date+'</div></div></div><div style="display:flex;align-items:center;gap:10px"><span style="font-weight:800;color:'+(e.type==='expense'?'var(--red)':'var(--green)')+'">'+(e.type==='expense'?'-':'+')+' '+fmt(e.valor)+'</span><button class="del-btn" onclick="deleteEntry('+e.id+')" aria-label="Deletar">✕</button></div></li>'}).join(''):'<li class="empty"><span class="big">📭</span>Nenhum lançamento ainda</li>';
+  renderFuros(cur,rec,gas);renderReport();renderAch();
+}
+function renderFuros(cur,rec,gas){
+  var expE=cur.filter(function(e){return e.type==='expense'});
+  var ct={};expE.forEach(function(e){ct[e.cat]=(ct[e.cat]||0)+e.valor});
+  var furos=[];
+  Object.entries(ct).forEach(function(kv){var c=kv[0],v=kv[1];if(metas[c]&&v>metas[c])furos.push({icon:'⚠️',title:c+' acima da meta',sub:'Gastou '+fmt(v)+' (meta: '+fmt(metas[c])+')',val:fmt(v-metas[c])+' a mais'})});
+  if(rec>0&&gas/rec>0.8)furos.push({icon:'🚨',title:'Alto comprometimento da renda',sub:Math.round(gas/rec*100)+'% da receita comprometida',val:'Risco!'});
+  if(rec>0&&(ct['Lazer']||0)/rec>0.15)furos.push({icon:'🎮',title:'Lazer elevado',sub:Math.round((ct['Lazer']||0)/rec*100)+'% da renda em lazer',val:fmt(ct['Lazer']||0)});
+  if((ct['Assinaturas']||0)>200)furos.push({icon:'📱',title:'Assinaturas acumuladas',sub:'Revise seus serviços mensais',val:fmt(ct['Assinaturas']||0)+'/mês'});
+  document.getElementById('furos-list').innerHTML=furos.length?furos.map(function(f){return'<div class="furo-item"><div style="display:flex;align-items:center;gap:14px"><div class="furo-icon-wrap">'+f.icon+'</div><div><div style="font-size:14px;font-weight:800">'+f.title+'</div><div style="font-size:12px;color:var(--muted);font-weight:600">'+f.sub+'</div></div></div><div style="font-size:15px;font-weight:800;color:var(--red)">'+f.val+'</div></div>'}).join(''):cur.length<5?'<div class="empty"><span class="big">🔍</span>Lance pelo menos 5 transações para analisar</div>':'<div class="empty"><span class="big">🎉</span>Nenhum furo! Orçamento saudável!</div>';
+  var mk=Object.keys(metas);
+  var me2=document.getElementById('metas-list');
+  if(mk.length===0){me2.innerHTML='<p style="font-size:14px;color:var(--muted);margin-bottom:12px;font-weight:600">Defina metas mensais para rastrear furos</p>'}
+  else{me2.innerHTML=mk.map(function(c){var spent=expE.filter(function(e){return e.cat===c}).reduce(function(a,e){return a+e.valor},0);var p=Math.min(100,Math.round(spent/metas[c]*100));var col=p>100?'var(--red)':p>80?'var(--amber)':'var(--green)';return'<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px"><span style="font-weight:700">'+(EMOJI[c]||'💼')+' '+c+'</span><span style="color:'+col+';font-weight:800">'+fmt(spent)+' / '+fmt(metas[c])+'</span></div><div class="pb-wrap"><div class="pb" style="width:'+p+'%;background:'+col+'"></div></div></div>'}).join('')+'<div style="margin-bottom:8px"></div>'}
+}
+function renderReport(){
+  var y=repYear,mo=repMonth;var mStr=MONTHS[mo]+' '+y;
+  document.getElementById('rep-month-title').textContent=mStr;document.getElementById('rep-hdr-title').textContent=mStr;
+  var me=monthEntries(y,mo);
+  var rec=me.filter(function(e){return e.type==='income'}).reduce(function(a,e){return a+e.valor},0);
+  var gas=me.filter(function(e){return e.type==='expense'}).reduce(function(a,e){return a+e.valor},0);
+  var sal=rec-gas;
+  document.getElementById('rep-rec').textContent=fmt(rec);document.getElementById('rep-gas').textContent=fmt(gas);document.getElementById('rep-sal').textContent=fmt(sal);
+  var expE=me.filter(function(e){return e.type==='expense'});
+  var insights=[];
+  if(me.length===0){document.getElementById('rep-insights').innerHTML='<div class="empty"><span class="big">📊</span>Sem dados para este mês</div>'}
+  else{
+    if(sal>0)insights.push({cls:'iok',ic:'✅',txt:'Saldo positivo! Você gastou menos do que recebeu. Continue assim!'});
+    if(sal<0)insights.push({cls:'idanger',ic:'🔴',txt:'Saldo negativo! Seus gastos ultrapassaram a receita em '+fmt(Math.abs(sal))+'.'});
+    if(rec>0&&gas/rec<0.5)insights.push({cls:'iok',ic:'🌟',txt:'Excelente! Você gastou apenas '+Math.round(gas/rec*100)+'% da sua renda este mês.'});
+    var ct={};expE.forEach(function(e){ct[e.cat]=(ct[e.cat]||0)+e.valor});
+    var sorted_ct=Object.entries(ct).sort(function(a,b){return b[1]-a[1]});
+    if(sorted_ct.length>0)insights.push({cls:'iinfo',ic:'📌',txt:'Maior categoria: '+sorted_ct[0][0]+' ('+fmt(sorted_ct[0][1])+')'});
+    var over=Object.keys(metas).filter(function(c){return ct[c]&&ct[c]>metas[c]});
+    if(over.length>0)insights.push({cls:'iwarn',ic:'⚠️',txt:over.length+' categoria(s) acima da meta: '+over.join(', ')});
+    var savings=Math.max(0,sal);
+    if(rec>0&&savings/rec>0.2)insights.push({cls:'iok',ic:'💰',txt:'Você poupou '+Math.round(savings/rec*100)+'% da renda — acima dos 20% recomendados!'});
+    document.getElementById('rep-insights').innerHTML=insights.map(function(i){return'<div class="ibox '+i.cls+'"><span class="ic">'+i.ic+'</span><span>'+i.txt+'</span></div>'}).join('');
+  }
+  var sorted_me=[].concat(me).sort(function(a,b){return a.date.localeCompare(b.date)});
+  document.getElementById('rep-list').innerHTML=sorted_me.length?sorted_me.map(function(e){return'<li class="eitem"><div style="display:flex;align-items:center;gap:12px"><div class="emoji">'+(EMOJI[e.cat]||'💼')+'</div><div><div style="font-weight:700">'+e.desc+'</div><div style="font-size:12px;color:var(--muted);font-weight:600">'+e.cat+' · '+e.date+'</div></div></div><span style="font-weight:800;color:'+(e.type==='expense'?'var(--red)':'var(--green)')+'">'+(e.type==='expense'?'-':'+')+' '+fmt(e.valor)+'</span></li>'}).join(''):'<li class="empty"><span class="big">📭</span>Sem transações neste mês</li>';
+  var ct2={};expE.forEach(function(e){ct2[e.cat]=(ct2[e.cat]||0)+e.valor});
+  var cats=Object.keys(ct2);var vals=cats.map(function(c){return ct2[c]});var cols=cats.map(function(c){return COLORS[c]||'#888'});
+  if(chartRep){chartRep.destroy();chartRep=null}
+  if(cats.length>0){chartRep=new Chart(document.getElementById('chart-rep'),{type:'doughnut',data:{labels:cats,datasets:[{data:vals,backgroundColor:cols,borderWidth:3,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});var tot=vals.reduce(function(a,v){return a+v},0);document.getElementById('rep-cat-legend').innerHTML=cats.map(function(c,i){return'<span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:'+cols[i]+';flex-shrink:0"></span>'+(EMOJI[c]||'')+' '+c+' '+Math.round(vals[i]/tot*100)+'%</span>'}).join('')}
+  if(chartDaily){chartDaily.destroy();chartDaily=null}
+  var daysInMonth=new Date(y,mo+1,0).getDate();var dailyTotals=Array(daysInMonth).fill(0);
+  expE.forEach(function(e){var d=parseInt(e.date.split('-')[2])-1;if(d>=0&&d<daysInMonth)dailyTotals[d]+=e.valor});
+  chartDaily=new Chart(document.getElementById('chart-daily'),{type:'bar',data:{labels:Array.from({length:daysInMonth},function(_,i){return i+1}),datasets:[{label:'Gastos (R$)',data:dailyTotals.map(function(v){return Math.round(v)}),backgroundColor:'#378ADD',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{autoSkip:true,maxTicksLimit:16,color:'#6b7280'},grid:{display:false}},y:{ticks:{color:'#6b7280',callback:function(v){return'R$'+v}},grid:{color:'#f3f4f6'}}}}});
+}
+function renderAch(){document.getElementById('ach-list').innerHTML=ACHS.map(function(a){var ok=a.check();return'<div class="ach-item '+(ok?'unlocked':'')+'"><div class="ach-icon '+(ok?'unlocked':'locked')+'">'+a.icon+'</div><div style="flex:1"><div style="font-size:15px;font-weight:'+(ok?'800':'600')+';color:'+(ok?'var(--text)':'var(--muted)')+'">'+a.title+'</div><div style="font-size:13px;color:var(--muted);font-weight:600">'+a.desc+'</div></div>'+(ok?'<span class="badge bok">✓ Feito!</span>':'')+'</div>'}).join('')}
+function exportCSV(){var me=monthEntries(repYear,repMonth);if(!me.length){toast('Sem dados para exportar');return}var rows=['Data,Tipo,Categoria,Descrição,Valor'].concat(me.sort(function(a,b){return a.date.localeCompare(b.date)}).map(function(e){return e.date+','+(e.type==='expense'?'Gasto':'Receita')+','+e.cat+',"'+e.desc+'",'+e.valor.toFixed(2)}));var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8;'}));a.download='FinanceXP_'+MONTHS[repMonth]+'_'+repYear+'.csv';a.click();toast('<span class="ic">📥</span> CSV exportado!')}
+function exportTxt(){var me=monthEntries(repYear,repMonth);var rec=me.filter(function(e){return e.type==='income'}).reduce(function(a,e){return a+e.valor},0);var gas=me.filter(function(e){return e.type==='expense'}).reduce(function(a,e){return a+e.valor},0);var ct={};me.filter(function(e){return e.type==='expense'}).forEach(function(e){ct[e.cat]=(ct[e.cat]||0)+e.valor});var txt='RELATÓRIO FINANCEIRO — '+MONTHS[repMonth].toUpperCase()+' '+repYear+'\n'+'='.repeat(45)+'\n\nRECEITAS: R$ '+rec.toFixed(2)+'\nGASTOS:   R$ '+gas.toFixed(2)+'\nSALDO:    R$ '+(rec-gas).toFixed(2)+'\n\nGASTOS POR CATEGORIA:\n'+'-'.repeat(30)+'\n';Object.entries(ct).sort(function(a,b){return b[1]-a[1]}).forEach(function(kv){txt+=kv[0].padEnd(18)+' R$ '+kv[1].toFixed(2)+'\n'});txt+='\nTRANSAÇÕES:\n'+'-'.repeat(30)+'\n';me.sort(function(a,b){return a.date.localeCompare(b.date)}).forEach(function(e){txt+=e.date+' | '+(e.type==='expense'?'Gasto  ':'Receita')+' | '+e.cat.padEnd(14)+' | '+e.desc.padEnd(20)+' | R$ '+e.valor.toFixed(2)+'\n'});txt+='\nGerado por FinanceXP';var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8;'}));a.download='FinanceXP_'+MONTHS[repMonth]+'_'+repYear+'.txt';a.click();toast('<span class="ic">📄</span> Relatório exportado!')}
+function printReport(){var me=monthEntries(repYear,repMonth);var rec=me.filter(function(e){return e.type==='income'}).reduce(function(a,e){return a+e.valor},0);var gas=me.filter(function(e){return e.type==='expense'}).reduce(function(a,e){return a+e.valor},0);var ct={};me.filter(function(e){return e.type==='expense'}).forEach(function(e){ct[e.cat]=(ct[e.cat]||0)+e.valor});var win=window.open('','_blank');win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Relatório '+MONTHS[repMonth]+' '+repYear+'</title><style>body{font-family:Arial,sans-serif;max-width:720px;margin:40px auto;color:#111;font-size:14px}h1{color:#1D9E75;border-bottom:2px solid #1D9E75;padding-bottom:8px}h2{color:#374151;margin-top:24px}.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f3f4f6}.g{color:#1D9E75}.r{color:#E24B4A}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:16px 0}.box{background:#f9fafb;padding:14px;border-radius:8px;text-align:center}.lbl{font-size:11px;color:#6b7280;margin-bottom:4px}.val{font-size:22px;font-weight:700}@media print{body{margin:20px}}</style></head><body><h1>💰 FinanceXP — Relatório Mensal</h1><p style="color:#6b7280">'+MONTHS[repMonth]+' '+repYear+'</p><div class="summary"><div class="box"><div class="lbl">Receitas</div><div class="val g">R$ '+rec.toFixed(2)+'</div></div><div class="box"><div class="lbl">Gastos</div><div class="val r">R$ '+gas.toFixed(2)+'</div></div><div class="box"><div class="lbl">Saldo</div><div class="val '+(rec-gas>=0?'g':'r')+'">R$ '+(rec-gas).toFixed(2)+'</div></div></div><h2>Gastos por categoria</h2>'+Object.entries(ct).sort(function(a,b){return b[1]-a[1]}).map(function(kv){return'<div class="row"><span>'+(EMOJI[kv[0]]||'•')+' '+kv[0]+'</span><span style="font-weight:bold">R$ '+kv[1].toFixed(2)+'</span></div>'}).join('')+'<h2>Transações</h2>'+me.sort(function(a,b){return a.date.localeCompare(b.date)}).map(function(e){return'<div class="row"><span>'+e.date+'</span><span>'+e.desc+' — '+e.cat+'</span><span style="font-weight:bold;color:'+(e.type==='expense'?'#E24B4A':'#1D9E75')+'">'+(e.type==='expense'?'-':'+')+' R$ '+e.valor.toFixed(2)+'</span></div>'}).join('')+'<p style="margin-top:32px;font-size:12px;color:#9ca3af;text-align:center">Gerado por FinanceXP</p></body></html>');win.document.close();win.print()}
+document.getElementById('inp-data').value=new Date().toISOString().slice(0,10);
+updateStreak();render();
+</script>
+</body>
+</html>
